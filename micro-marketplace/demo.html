@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bazaar — Micro Marketplace Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0c0c0e;--surface:#141418;--card:#1a1a20;--border:#2a2a35;
+  --muted:#4a4a5a;--text:#e8e8f0;--sub:#9090a8;--accent:#ff6b35;
+  --gold:#f0c060;--green:#4ade80;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;-webkit-font-smoothing:antialiased}
+
+/* ── Navbar ── */
+.nav{position:sticky;top:0;z-index:100;background:rgba(12,12,14,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Fraunces',serif;font-size:26px;font-style:italic;color:var(--text)}
+.logo span{color:var(--accent)}
+.nav-links{display:flex;align-items:center;gap:12px}
+.pill{padding:8px 20px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:13px;cursor:pointer;transition:.2s;font-family:'DM Sans',sans-serif}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.pill.primary:hover{background:#ff8c5a;transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,107,53,.35)}
+.badge{background:var(--accent);color:#fff;font-size:10px;padding:2px 6px;border-radius:99px;margin-left:4px}
+
+/* ── Hero ── */
+.hero{padding:72px 32px 56px;text-align:center;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,107,53,.09),transparent);border-bottom:1px solid var(--border)}
+.hero h1{font-family:'Fraunces',serif;font-size:clamp(38px,6vw,72px);font-weight:300;line-height:1.1;margin-bottom:18px}
+.hero h1 em{color:var(--accent);font-style:italic}
+.hero p{color:var(--sub);font-size:16px;margin-bottom:36px}
+.search-bar{max-width:520px;margin:0 auto;position:relative}
+.search-bar input{width:100%;padding:16px 20px 16px 50px;background:var(--surface);border:1px solid var(--border);border-radius:50px;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;outline:none;transition:.2s}
+.search-bar input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,107,53,.15)}
+.search-bar .si{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--muted)}
+
+/* ── Filters ── */
+.filters{display:flex;flex-wrap:wrap;gap:10px;padding:20px 32px 0;align-items:center}
+.chip{padding:7px 16px;border-radius:50px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-size:12px;cursor:pointer;transition:.2s}
+.chip.active{border-color:var(--accent);color:var(--accent);background:rgba(255,107,53,.08)}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.sort-select{margin-left:auto;padding:7px 14px;border-radius:50px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;outline:none}
+
+/* ── Grid ── */
+.container{max-width:1280px;margin:0 auto;padding:0 32px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;padding:24px 0 60px}
+
+/* ── Card ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:.25s;animation:fadeUp .4s ease forwards;opacity:0}
+.card:hover{transform:translateY(-5px);box-shadow:0 8px 32px rgba(0,0,0,.5);border-color:var(--muted)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.card-img-wrap{overflow:hidden}
+.card img{width:100%;height:220px;object-fit:cover;display:block;transition:transform .45s ease}
+.card:hover img{transform:scale(1.05)}
+.card-body{padding:16px}
+.card-cat{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:600;margin-bottom:6px}
+.card-title{font-family:'Fraunces',serif;font-size:17px;margin-bottom:10px;color:var(--text);line-height:1.3}
+.card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.price{font-size:18px;font-weight:500;color:var(--gold)}
+.rating{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:3px;margin-top:4px}
+.star{color:var(--gold)}
+
+/* ── Fav Button ── */
+.fav{width:36px;height:36px;border-radius:50%;border:none;background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;color:var(--sub)}
+.fav:hover{background:rgba(255,107,53,.12);color:var(--accent)}
+.fav svg{transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.fav:hover svg,.fav.on svg{transform:scale(1.3)}
+.fav.on{color:var(--accent)}
+.fav.on svg{fill:var(--accent)}
+
+/* ── Pagination ── */
+.pagination{display:flex;align-items:center;justify-content:center;gap:8px;padding:0 0 60px}
+.pg-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-size:14px;transition:.2s;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif}
+.pg-btn:hover{border-color:var(--accent);color:var(--accent)}
+.pg-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── Product Detail Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:.3s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;max-width:860px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:0;overflow:hidden;transform:translateY(20px);transition:.3s;max-height:90vh;overflow-y:auto}
+.modal-bg.open .modal{transform:translateY(0)}
+.modal-img{width:100%;height:100%;min-height:300px;object-fit:cover;display:block}
+.modal-body{padding:36px;display:flex;flex-direction:column;gap:16px}
+.modal-cat{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:600}
+.modal-title{font-family:'Fraunces',serif;font-size:28px;color:var(--text);line-height:1.2}
+.modal-price{font-size:34px;color:var(--gold);font-weight:500}
+.modal-desc{color:var(--sub);font-size:14px;line-height:1.75}
+.modal-actions{display:flex;gap:12px;margin-top:auto;padding-top:8px}
+.close-btn{position:absolute;top:20px;right:24px;background:rgba(20,20,24,.9);border:1px solid var(--border);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);font-size:18px;z-index:201;transition:.2s}
+.close-btn:hover{border-color:var(--accent);color:var(--accent)}
+.modal-stars{color:var(--gold);font-size:18px}
+.stock-ok{color:var(--green);font-size:13px}
+
+/* ── Auth Cards ── */
+.auth-demo{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:40px 32px;background:radial-gradient(ellipse 80% 100% at 50% -20%,rgba(255,107,53,.07),transparent)}
+.auth-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px;max-width:420px}
+.auth-head{margin-bottom:28px}
+.auth-head h2{font-family:'Fraunces',serif;font-size:28px;font-style:italic}
+.auth-head p{color:var(--sub);font-size:13px;margin-top:4px}
+.form-group{margin-bottom:18px}
+.form-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--sub);font-weight:600;margin-bottom:6px;display:block}
+.form-input{width:100%;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,107,53,.12)}
+
+/* ── Section headers ── */
+.section-head{padding:48px 32px 0;text-align:center}
+.section-head h2{font-family:'Fraunces',serif;font-size:clamp(28px,4vw,44px);margin-bottom:8px}
+.section-head p{color:var(--sub);font-size:15px}
+.divider{height:1px;background:var(--border);margin:40px 32px 0}
+
+/* ── Mobile Preview ── */
+.mobile-preview{display:flex;justify-content:center;gap:40px;padding:48px 32px;flex-wrap:wrap}
+.phone{width:280px;height:580px;background:var(--surface);border:2px solid var(--border);border-radius:40px;overflow:hidden;position:relative;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.phone-screen{position:absolute;inset:12px;border-radius:30px;overflow:hidden;background:var(--bg)}
+.phone-label{text-align:center;margin-top:16px;font-size:13px;color:var(--sub)}
+
+/* ── API Docs ── */
+.api-section{padding:48px 32px;max-width:860px;margin:0 auto}
+.api-section h2{font-family:'Fraunces',serif;font-size:32px;margin-bottom:32px}
+.endpoint{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.endpoint-head{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer}
+.method{font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;font-family:monospace;letter-spacing:.05em}
+.GET{background:rgba(74,222,128,.15);color:var(--green)}
+.POST{background:rgba(255,107,53,.15);color:var(--accent)}
+.PUT{background:rgba(240,192,96,.15);color:var(--gold)}
+.DELETE{background:rgba(255,85,85,.15);color:#ff5555}
+.route{font-family:monospace;font-size:14px;color:var(--text)}
+.lock{font-size:12px;color:var(--muted)}
+.ep-desc{color:var(--sub);font-size:13px;margin-left:auto}
+
+/* ── Toasts ── */
+.toast-demo{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:300}
+.toast{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .3s ease;transform-origin:right}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── Footer ── */
+footer{border-top:1px solid var(--border);padding:32px;text-align:center;color:var(--sub);font-size:13px}
+footer strong{color:var(--text)}
+
+/* Animation delays */
+.c1{animation-delay:.05s}.c2{animation-delay:.1s}.c3{animation-delay:.15s}
+.c4{animation-delay:.2s}.c5{animation-delay:.25s}.c6{animation-delay:.3s}
+.c7{animation-delay:.35s}.c8{animation-delay:.4s}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="nav">
+  <div class="logo">Baz<span>aa</span>r</div>
+  <div class="nav-links">
+    <button class="chip active" style="border:none">Shop</button>
+    <button class="chip" style="border:none" onclick="showToast('♡ Nothing saved yet','')">♡ Saved</button>
+    <button class="pill">Login</button>
+    <button class="pill primary">Sign up</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>Discover <em>remarkable</em><br>things</h1>
+  <p>A curated marketplace of products you'll love.</p>
+  <div class="search-bar">
+    <svg class="si" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input placeholder="Search products, categories…" id="searchInput" oninput="filterCards()"/>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<div class="filters" id="filters">
+  <button class="chip active" onclick="setCategory(this,'All')">All</button>
+  <button class="chip" onclick="setCategory(this,'Electronics')">Electronics</button>
+  <button class="chip" onclick="setCategory(this,'Clothing')">Clothing</button>
+  <button class="chip" onclick="setCategory(this,'Home')">Home</button>
+  <button class="chip" onclick="setCategory(this,'Books')">Books</button>
+  <button class="chip" onclick="setCategory(this,'Sports')">Sports</button>
+  <button class="chip" onclick="setCategory(this,'Beauty')">Beauty</button>
+  <button class="chip" onclick="setCategory(this,'Toys')">Toys</button>
+  <button class="chip" onclick="setCategory(this,'Food')">Food</button>
+  <select class="sort-select"><option>Newest</option><option>Price: Low</option><option>Price: High</option><option>Top Rated</option></select>
+</div>
+
+<p style="color:var(--sub);font-size:13px;padding:10px 32px 0" id="countLabel">10 products</p>
+
+<!-- PRODUCTS GRID -->
+<div class="container">
+<div class="grid" id="productGrid">
+
+  <!-- Cards -->
+  <div class="card c1" data-cat="Electronics" data-title="Sony WH-1000XM5 Headphones" onclick="openModal(this)">
+    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600" alt="Headphones"></div>
+    <div class="card-body">
+      <p class="card-cat">Electronics</p>
+      <h3 class="card-title">Sony WH-1000XM5 Headphones</h3>
+      <div class="card-foot">
+        <div>
+          <p class="price">$349.99</p>
+          <p class="rating"><span class="star">★★★★★</span> (2,341)</p>
+        </div>
+        <button class="fav" onclick="toggleFav(event,this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card c2" data-cat="Clothing" data-title="Classic Leather Jacket" onclick="openModal(this)">
+    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600" alt="Jacket"></div>
+    <div class="card-body">
+      <p class="card-cat">Clothing</p>
+      <h3 class="card-title">Classic Leather Jacket</h3>
+      <div class="card-foot">
+        <div>
+          <p class="price">$189.99</p>
+          <p class="rating"><span class="star">★★★★½</span> (876)</p>
+        </div>
+        <button class="fav" onclick="toggleFav(event,this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card c3" data-cat="Home" data-title="Minimalist Desk Lamp" onclick="openModal(this)">
+    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600" alt="Lamp"></div>
+    <div class="card-body">
+      <p class="card-cat">Home</p>
+      <h3 class="card-title">Minimalist Desk Lamp</h3>
+      <div class="card-foot">
+        <div>
+          <p class="price">$59.99</p>
+          <p class="rating"><span class="star">★★★★½</span> (543)</p>
+        </div>
+        <button class="fav" onclick="toggleFav(event,this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card c4" data-cat="Books" data-title="The Pragmatic Programmer" onclick="openModal(this)">
+    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600" alt="Book"></div>
+    <div class="card-body">
+      <p class="card-cat">Books</p>
+      <h3 class="card-title">The Pragmatic Programmer</h3>
+      <div class="card-foot">
+        <div>
+          <p class="price">$39.99</p>
+          <p class="rating"><span class="star">★★★★★</span> (5,203)</p>
+        </div>
+        <button class="fav" onclick="toggleFav(event,this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card c5" data-cat="Sports" data-title="Yoga Mat Pro Non-Slip" onclick="openModal(this)">
+    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=600" alt="Yoga Mat"></div>
+    <div class="card-body">
+      <p class="card-cat">Sports</p>
+      <h3 class="card-title">Yoga Mat Pro – Non-Slip</h3>
+      <div class="card-foot">
+        <div>
+          <p class="price">$44.99</p>
+          <p class="rating"><span class="star">★★★★★</span> (1,120)</p>
+        </div>
+        <button class="fav" onclick="toggleFav(event,this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card c6" data-cat="Beauty" data-title="Vitamin C Glow Serum" onclick="openModal(this)">
+    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600" alt="Serum"></div>
+    <div class="card-body">
+      <p class="card-cat">Beauty</p>
+      <h3 class="card-title">Vitamin C Glow Serum</h3>
+      <div class="card-foot">
+        <div>
+          <p class="price">$28.00</p>
+          <p class="rating"><span class="star">★★★★½</span> (892)</p>
+        </div>
+        <button class="fav" onclick="toggleFav(event,this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card c7" data-cat="Toys" data-title="LEGO Architecture Skyline" onclick="openModal(this)">
+    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600" alt="LEGO"></div>
+    <div class="card-body">
+      <p class="card-cat">Toys</p>
+      <h3 class="card-title">LEGO Architecture Skyline</h3>
+      <div class="card-foot">
+        <div>
+          <p class="price">$74.99</p>
+          <p class="rating"><span class="star">★★★★★</span> (673)</p>
+        </div>
+        <button class="fav on" onclick="toggleFav(event,this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#ff6b35" stroke="#ff6b35" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card c8" data-cat="Electronics" data-title="Mechanical Keyboard TKL" onclick="openModal(this)">
+    <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1541140532154-b024d705b90a?w=600" alt="Keyboard"></div>
+    <div class="card-body">
+      <p class="card-cat">Electronics</p>
+      <h3 class="card-title">Mechanical Keyboard TKL</h3>
+      <div class="card-foot">
+        <div>
+          <p class="price">$129.99</p>
+          <p class="rating"><span class="star">★★★★★</span> (1,456)</p>
+        </div>
+        <button class="fav" onclick="toggleFav(event,this)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Pagination -->
+<div class="pagination">
+  <button class="pg-btn">‹</button>
+  <button class="pg-btn active">1</button>
+  <button class="pg-btn">2</button>
+  <button class="pg-btn">›</button>
+</div>
+</div><!-- /container -->
+
+<!-- ── Auth Section ── -->
+<div class="divider"></div>
+<div class="section-head">
+  <h2>Auth Flow</h2>
+  <p>Clean login & registration forms with validation feedback</p>
+</div>
+<div class="auth-demo">
+  <div class="auth-card">
+    <div class="auth-head">
+      <h2>Sign In</h2>
+      <p>Access your Bazaar account</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" value="alice@example.com" readonly/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" value="password123" readonly/>
+    </div>
+    <button class="pill primary" style="width:100%;padding:14px;margin-bottom:12px">Sign In</button>
+    <button class="pill" style="width:100%;padding:14px">Use Demo Credentials</button>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-head">
+      <h2>Create Account</h2>
+      <p>Join Bazaar — it's free</p>
+    </div>
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" placeholder="Alice Johnson"/></div>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-input" placeholder="alice@example.com"/></div>
+    <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="6+ characters"/></div>
+    <div class="form-group"><label class="form-label">Confirm Password</label><input class="form-input" type="password" placeholder="Repeat password"/></div>
+    <button class="pill primary" style="width:100%;padding:14px">Create Account</button>
+  </div>
+</div>
+
+<!-- ── API Docs ── -->
+<div class="divider"></div>
+<div class="api-section">
+  <h2>API Reference</h2>
+  <p style="color:var(--sub);margin-bottom:24px">Base URL: <code style="background:var(--card);padding:4px 10px;border-radius:6px;font-size:13px">http://localhost:5000</code> &nbsp;🔒 = requires JWT Bearer token</p>
+
+  <div class="endpoint"><div class="endpoint-head"><span class="method POST">POST</span><span class="route">/auth/register</span><span class="ep-desc">Register user, returns JWT</span></div></div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method POST">POST</span><span class="route">/auth/login</span><span class="ep-desc">Login, returns JWT</span></div></div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method GET">GET</span><span class="route">/auth/me</span><span class="lock">🔒</span><span class="ep-desc">Get current user</span></div></div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method GET">GET</span><span class="route">/products?q=&category=&sort=&page=&limit=</span><span class="ep-desc">List with search + pagination</span></div></div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method GET">GET</span><span class="route">/products/:id</span><span class="ep-desc">Get single product</span></div></div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method POST">POST</span><span class="route">/products</span><span class="lock">🔒</span><span class="ep-desc">Create product</span></div></div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method PUT">PUT</span><span class="route">/products/:id</span><span class="lock">🔒</span><span class="ep-desc">Update product (owner only)</span></div></div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method DELETE">DELETE</span><span class="route">/products/:id</span><span class="lock">🔒</span><span class="ep-desc">Delete product (owner only)</span></div></div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method POST">POST</span><span class="route">/products/:id/favorite</span><span class="lock">🔒</span><span class="ep-desc">Toggle favorite</span></div></div>
+  <div class="endpoint"><div class="endpoint-head"><span class="method GET">GET</span><span class="route">/products/favorites/me</span><span class="lock">🔒</span><span class="ep-desc">Get my favorites</span></div></div>
+</div>
+
+<!-- ── Modal ── -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <button class="close-btn" onclick="closeModalDirect()">✕</button>
+  <div class="modal" id="modal">
+    <img id="modalImg" class="modal-img" src="" alt=""/>
+    <div class="modal-body">
+      <p class="modal-cat" id="modalCat"></p>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <div id="modalStars" class="modal-stars"></div>
+      <p class="modal-price" id="modalPrice"></p>
+      <p class="modal-desc">Industry-leading quality with premium materials and craftsmanship. Perfect for everyday use with a lifetime satisfaction guarantee.</p>
+      <p class="stock-ok">✓ In stock — ships in 1–2 days</p>
+      <div class="modal-actions">
+        <button class="pill primary" style="flex:1">🛒 Add to Cart</button>
+        <button class="pill" onclick="toggleFav(event,null,true)">♡ Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toasts ── -->
+<div class="toast-demo" id="toastContainer"></div>
+
+<!-- ── Footer ── -->
+<footer>
+  <strong>Bazaar — Micro Marketplace</strong> &nbsp;·&nbsp;
+  Built with Node.js + Express + MongoDB + React + React Native &nbsp;·&nbsp;
+  February 2026
+</footer>
+
+<script>
+let currentCategory = 'All';
+
+function setCategory(btn, cat) {
+  currentCategory = cat;
+  document.querySelectorAll('.filters .chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterCards();
+}
+
+function filterCards() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const cards = document.querySelectorAll('#productGrid .card');
+  let visible = 0;
+  cards.forEach(card => {
+    const cat = card.dataset.cat;
+    const title = card.dataset.title.toLowerCase();
+    const matchCat = currentCategory === 'All' || cat === currentCategory;
+    const matchQ = !q || title.includes(q);
+    const show = matchCat && matchQ;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('countLabel').textContent = `${visible} product${visible !== 1 ? 's' : ''}${q ? ` for "${document.getElementById('searchInput').value}"` : ''}`;
+}
+
+function toggleFav(e, btn, fromModal) {
+  if (e) e.stopPropagation();
+  if (btn) {
+    btn.classList.toggle('on');
+    const svg = btn.querySelector('svg');
+    if (btn.classList.contains('on')) {
+      svg.setAttribute('fill','#ff6b35');
+      svg.setAttribute('stroke','#ff6b35');
+      showToast('❤️ Added to favorites','');
+    } else {
+      svg.setAttribute('fill','none');
+      svg.setAttribute('stroke','currentColor');
+      showToast('Removed from favorites','');
+    }
+  } else {
+    showToast('❤️ Added to favorites','');
+  }
+}
+
+function openModal(card) {
+  const img = card.querySelector('img');
+  const cat = card.querySelector('.card-cat').textContent;
+  const title = card.querySelector('.card-title').textContent;
+  const price = card.querySelector('.price').textContent;
+  const starsText = card.querySelector('.star').textContent;
+
+  document.getElementById('modalImg').src = img.src;
+  document.getElementById('modalCat').textContent = cat;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalPrice').textContent = price;
+  document.getElementById('modalStars').textContent = starsText;
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalBg')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalBg').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function showToast(msg, icon) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 2500);
+}
+</script>
+</body>
+</html>
