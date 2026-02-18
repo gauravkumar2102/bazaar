@@ -4,6 +4,8 @@ A full-stack marketplace app with **Node.js/Express** backend, **React** web app
 
 ---
 
+LIVE LINK- https://bazaar-marketplace12.netlify.app
+
 ## 📋 Table of Contents
 
 - [Architecture](#architecture)
