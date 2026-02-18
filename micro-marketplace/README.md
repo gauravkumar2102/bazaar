@@ -115,17 +115,6 @@ npm start
 
 ---
 
-## Test Credentials
-
-After running `npm run seed` in the backend:
-
-| User    | Email                | Password      |
-|---------|----------------------|---------------|
-| Alice   | alice@example.com    | password123   |
-| Bob     | bob@example.com      | password123   |
-
----
-
 ## API Reference
 
 Base URL: `http://localhost:5000`
@@ -294,71 +283,6 @@ Get the current user's favorited products.
 
 ---
 
-## Project Structure
-
-```
-backend/
-├── src/
-│   ├── config/
-│   │   └── db.js              MongoDB connection
-│   ├── middleware/
-│   │   └── auth.js            JWT protect middleware + token generator
-│   ├── models/
-│   │   ├── User.js            User schema (name, email, password, favorites[])
-│   │   └── Product.js         Product schema (title, price, description, image, category...)
-│   ├── routes/
-│   │   ├── auth.js            /auth/register, /auth/login, /auth/me
-│   │   └── products.js        Full CRUD + search/pagination + favorites
-│   ├── index.js               Express app entry point
-│   └── seed.js                Database seeder (10 products, 2 users)
-├── .env.example
-└── package.json
-
-web/
-├── public/
-│   └── index.html
-├── src/
-│   ├── components/
-│   │   ├── Navbar.js          Responsive navigation bar
-│   │   └── ProductCard.js     Product card with favorite toggle animation
-│   ├── context/
-│   │   └── AuthContext.js     Global auth state (JWT, user, favorites)
-│   ├── pages/
-│   │   ├── HomePage.js        Product listing, search, filters, pagination
-│   │   ├── ProductDetailPage.js  Full product detail view
-│   │   ├── LoginPage.js       Login form with demo credentials
-│   │   ├── RegisterPage.js    Registration form
-│   │   └── FavoritesPage.js   User's saved products
-│   ├── utils/
-│   │   └── api.js             Axios instance with JWT interceptors
-│   ├── App.js                 Router + protected routes
-│   └── index.css              Dark theme design system
-└── package.json
-
-mobile/
-├── src/
-│   ├── components/
-│   │   └── ProductCard.js     Native product card with heart toggle
-│   ├── context/
-│   │   └── AuthContext.js     Auth state with AsyncStorage persistence
-│   ├── navigation/
-│   │   └── AppNavigator.js    Stack + Tab navigation setup
-│   ├── screens/
-│   │   ├── LoginScreen.js     Login form
-│   │   ├── RegisterScreen.js  Registration form
-│   │   ├── ProductsScreen.js  Browse with search, categories, pagination
-│   │   ├── ProductDetailScreen.js  Full product detail
-│   │   ├── FavoritesScreen.js User's saved products
-│   │   └── ProfileScreen.js  User profile + logout
-│   └── utils/
-│       ├── api.js             Axios with AsyncStorage JWT injection
-│       └── theme.js           Design tokens (colors, spacing, radius)
-├── App.js
-├── app.json                   Expo config
-└── package.json
-```
-
----
 
 ## Features
 
