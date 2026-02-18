@@ -14,7 +14,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:19006'],
+  origin: ['https://adorable-travesseiro-8cd688.netlify.app','http://localhost:3000', 'http://localhost:5173', 'http://localhost:19006'],
   credentials: true
 }));
 app.use(express.json());
